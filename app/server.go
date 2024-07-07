@@ -16,21 +16,14 @@ func reqlogger(c *fiber.Ctx) error {
 	return nil
 }
 
-func indexHandler(c *fiber.Ctx) error {
-	c.SendString("Welcome To Home!!")
-	
-	return nil
-}
-
 func CreateApp() *fiber.App {
 	app := fiber.New()
 
 	app.Use(reqlogger)
 
-	app.Get("/", indexHandler)
-	// app.Post("/", postHandler)
-	// app.Put("/update", putHandler)
-	// app.Delete("/delete", deleteHandler)
+	app.Get("/", IndexHandler)
+	app.Post("/post", AddTodo)
+	app.Delete("/delete", DeleteTodo)
 
 	return app
 }
