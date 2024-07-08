@@ -10,9 +10,7 @@ func sendTodos(c *fiber.Ctx, r db.TodoRepository) {
 	todoList, err := r.GetAllTodo()
 
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Internal Server error",
-		})
+		c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		return
 	}
 

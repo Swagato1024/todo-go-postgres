@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,6 +52,12 @@ func TestSendTodos_ServerError(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	resp, _:= app.Test(req)
 
+	body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        t.Fatalf("Failed to read response body: %v", err)
+    }
+
+	assert.Equal(t, "Internal server error", string(body), "Response message mismatch")
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "should fail send todo for internal error")
 }
 
