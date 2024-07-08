@@ -16,36 +16,26 @@ func sendTodos(c *fiber.Ctx, r db.TodoRepository) {
 		return
 	}
 
-	c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"todos": todoList,
-	})
+	c.Status(fiber.StatusOK).JSON(todoList)
 }
 
 func addTodo(c *fiber.Ctx, r db.TodoRepository, todo models.Todo) {
 	err := r.AddTodo(todo)
 
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Todo creation failed",
-		})
+		c.Status(fiber.StatusInternalServerError).SendString("Todo creation Failed")
 		return
 	}
 
-	c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Todo created successfully",
-	})
+	c.Status(fiber.StatusCreated).SendString("Todo added successfully")
 }
 
 func deleteTodo(c *fiber.Ctx, r db.TodoRepository, id string) {
 	err := r.DeleteTodo(id)
 
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Todo creation failed",
-		})
+		c.Status(fiber.StatusInternalServerError).SendString("Todo deletion failed")
 		return
 	}
-	c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"todos": "Todo deleted",
-	})
+	c.Status(fiber.StatusOK).SendString("Todo deleted")
 }
