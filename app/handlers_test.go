@@ -37,7 +37,7 @@ func TestSendTodos_Success(t *testing.T) {
 
 	assert.NoError(t, errInReq)
 	assert.Equal(t, todoList, actualTodos)
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "Todos sent successfully")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "should send all todos")
 }
 
 func TestSendTodos_ServerError(t *testing.T) {
@@ -51,7 +51,7 @@ func TestSendTodos_ServerError(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
 	resp, _:= app.Test(req)
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "Send Todo Expected Internal server Error")
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "should fail send todo for internal error")
 }
 
 
@@ -66,15 +66,8 @@ func TestDeleteTodo_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/todo/some-id", nil)
 	resp, errInReq := app.Test(req)
 
-	// var responseMsg string
-    // decoder := json.NewDecoder(resp.Body)
-    // if err := decoder.Decode(&responseMsg); err != nil {
-    //     t.Fatalf("Failed to decode JSON response: %v", err)
-    // }
-
 	assert.NoError(t, errInReq)
-	// assert.Equal(t, "Todo deleted",responseMsg)
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "Delete todo by id successful")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "should delete todo by id")
 }
 
 func TestDeleteTodos_ServerError(t *testing.T) {
@@ -82,11 +75,11 @@ func TestDeleteTodos_ServerError(t *testing.T) {
 	defer ctrl.Finish()
 	mockRepo := db.NewMockTodoRepository(ctrl)
 
-	mockRepo.EXPECT().GetAllTodo().Return(nil, errors.New("mock error"))
+	mockRepo.EXPECT().DeleteTodo("some-id").Return(errors.New("mock-error"))
 
 	app := CreateApp(mockRepo)
-	req := httptest.NewRequest(http.MethodGet, "/todos", nil)
-	resp, _:= app.Test(req)
+	req := httptest.NewRequest(http.MethodDelete, "/todo/some-id", nil)
+	resp, _ := app.Test(req)
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "Expected Internal server Error")
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "should fail todo deletion for internal error")
 }
