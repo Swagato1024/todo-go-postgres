@@ -5,11 +5,14 @@ import (
 	"log"
 	"os"
 
+	"github.com/todo/db"
 	"github.com/todo/app"
 )
 
 func main() {
-	app := app.CreateApp()
+	dbConnection, _ := db.ConnectDB()
+
+	app := app.CreateApp(dbConnection)
 
 	port := os.Getenv("PORT")
 

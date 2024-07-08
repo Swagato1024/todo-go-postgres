@@ -15,7 +15,7 @@ func getConfig() Config {
 		Port:     "5432",
 		User:     "postgres",
 		Password: "secret",
-		DBName:   "todo",
+		DBName:   "postgres",
 		SslMode:  "disabled",
 	}
 }

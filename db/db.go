@@ -5,81 +5,106 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
+	"github.com/todo/models"
 )
 
-func connectDB() (*sql.DB, error){
-	// connectionStr := "user=postgres password=secret dbname=postgres sslmode=disable"
+type DB struct {
+	Connection *sql.DB
+}
 
+func (db *DB) GetAllTodo() ([]models.Todo, error) {
+	rows, err := db.Connection.Query("SELECT id, title, completed FROM todos")
+	if err != nil {
+		return nil, fmt.Errorf("error querying todos: %v", err)
+	}
+
+	defer rows.Close()
+
+	var todos []models.Todo
+	for rows.Next() {
+		var todo models.Todo
+		if err := rows.Scan(&todo.ID, &todo.Title, &todo.Completed); err != nil {
+			return nil, fmt.Errorf("error scanning todo: %v", err)
+		}
+
+		todos = append(todos, todo)
+	}
+
+	if err := rows.Err(); err != nil {
+        return nil, fmt.Errorf("error iterating over rows: %v", err)
+    }
+
+	return todos, nil
+}
+
+func (db *DB) AddTodo(todo models.Todo) error {
+	_, err := db.Connection.Exec("INSERT INTO todos (id, title, completed) VALUES ($1, $2, $3)",
+		todo.ID, todo.Title, todo.Completed)
+
+	if err != nil {
+		return  fmt.Errorf("error inserting todo: %v", err)
+	}
+
+	return nil
+}
+
+func (db *DB) DeleteTodo(id string) error {
+	_, err := db.Connection.Exec("DELETE FROM todos WHERE id = $1", id)
+
+	if err != nil {
+		return fmt.Errorf("error deleting todo: %v", err)
+	}
+	return nil
+}
+
+func createTable(db *sql.DB, tableName string) error {
+	createTableQuery := fmt.Sprintf(`
+	    CREATE TABLE IF NOT EXISTS %s (
+	        id SERIAL PRIMARY KEY,
+	        title VARCHAR(50) NOT NULL,
+	        completed BOOLEAN
+	    )
+	`, tableName)
+
+	_, err := db.Exec(createTableQuery)
+	if err != nil {
+		return fmt.Errorf("error creating table %s: %v", tableName, err)
+	}
+
+	return nil
+}
+
+func ConnectDB() (*DB, error) {
 	cfg := getConfig()
 
-    connectionInfo := fmt.Sprintf(
-		"host=%s port=%s user=%s " +
-        "password=%s dbname=%s sslmode=disable",
-        cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName)
+	connectionInfo := fmt.Sprintf(
+		"host=%s port=%s user=%s "+
+			"password=%s dbname=%s sslmode=disable",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName)
 
 	conn, err := sql.Open("postgres", connectionInfo)
 
 	if err != nil {
-		fmt.Println("Error connecting to the database:", err)
-		panic(err)
+		return nil, fmt.Errorf("error connecting to database: %v", err)
 	}
 
-	return conn, nil
+	if err := conn.Ping(); err != nil {
+        return nil, fmt.Errorf("error pinging database: %v", err)
+    }
 
 
-	// rows, err := conn.Query("SELECT version();")
-	// if err != nil {
-	// 	panic(err)
-	// }
+    tableName := "todos"
 
-	// for rows.Next() {
-	// 	var version string
-	// 	rows.Scan(&version)
-	// 	fmt.Println(version)
-	// }
+    query := "DROP TABLE " + tableName
 
-	// rows.Close()
+    conn.Exec(query)
 
-	// Create a new database
-	// _, err = conn.Exec("CREATE DATABASE employee TEMPLATE template0")
-	// Create a new database from template0
+	err = createTable(conn, "todos")
 
-	// if err != nil {
-	// 	log.Fatal("Error creating database:", err)
-	// }
+	if err != nil {
+		return nil, fmt.Errorf("error while creating the table")
+	}
 
-	    // Create the 'users' table if it does not exist
-	// 	createTable := `
-    //     CREATE TABLE IF NOT EXISTS users (
-    //         id SERIAL PRIMARY KEY,
-    //         username VARCHAR(50) NOT NULL,
-    //         email VARCHAR(100) NOT NULL UNIQUE
-    //     )
-    // `
-
-    // _, err = conn.Exec(createTable)
-	// if err != nil {
-    //     log.Fatal("Error creating table:", err)
-    // }
-
-
-	// Example SQL insert statement
-	// insertStatement := `
-	// 	 INSERT INTO users (username, email)
-	// 	 VALUES ($1, $2)
-	//  `
-
-	// Example data to insert
-	// username := "john_doe"
-	// email := "john.doe@example.com"
-
-	// Execute the SQL statement
-	// _, err = conn.Exec(insertStatement, username, email)
-	// if err != nil {
-	// 	log.Fatal("Error inserting data into table:", err)
-	// }
-
-	// fmt.Println("Data inserted successfully!")
-
-	// conn.Close()
+	return &DB{Connection: conn}, nil
 }
+
