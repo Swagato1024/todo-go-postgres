@@ -21,7 +21,7 @@ func sendTodos(c *fiber.Ctx, r db.TodoRepository) {
 	})
 }
 
-func AddTodo(c *fiber.Ctx, r db.TodoRepository, todo models.Todo) {
+func addTodo(c *fiber.Ctx, r db.TodoRepository, todo models.Todo) {
 	err := r.AddTodo(todo)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func AddTodo(c *fiber.Ctx, r db.TodoRepository, todo models.Todo) {
 	})
 }
 
-func DeleteTodo(c *fiber.Ctx, r db.TodoRepository, id string) {
+func deleteTodo(c *fiber.Ctx, r db.TodoRepository, id string) {
 	err := r.DeleteTodo(id)
 
 	if err != nil {

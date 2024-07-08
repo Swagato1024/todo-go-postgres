@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/todo/db"
@@ -25,6 +26,8 @@ func CreateApp(r db.TodoRepository) *fiber.App {
 	app.Use(reqlogger)
 
 	app.Get("/todos", func(c *fiber.Ctx) error {
+		fmt.Printf("Inside get todos");
+		
 		sendTodos(c, r)
 		return nil
 	})
@@ -38,13 +41,13 @@ func CreateApp(r db.TodoRepository) *fiber.App {
 			})
 		}
 
-		AddTodo(c, r, todo)
+		addTodo(c, r, todo)
 		return nil
 	})
 
 	app.Delete("/delete/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")
-		DeleteTodo(c, r, id)
+		deleteTodo(c, r, id)
 		return nil
 	})
 
